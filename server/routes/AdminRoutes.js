@@ -7,10 +7,12 @@ import {
 } from "../middleware/rateLimiter.js";
 import { dashboard } from "../controllers/AdminController.js";
 import categoryRoutes from "./CategoryRoutes.js";
-
+import brandRoutes from "./BrandRoutes.js";
 const router = express.Router();
 router.use(authLimiter);
 router.use("/categories", categoryRoutes);
+router.use("/brands", brandRoutes);
+
 router.get(
   "/dashboard",
   verifyToken,
