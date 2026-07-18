@@ -19,12 +19,6 @@ class AuthRepository {
       runValidators: true,
     });
   }
-
-  async findByEmail(email) {
-    return await User.findOne({
-      email,
-    }).select("+password");
-  }
 }
 
 export default new AuthRepository();
