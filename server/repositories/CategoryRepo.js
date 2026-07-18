@@ -1,42 +1,84 @@
 import Category from "../models/Category.js";
 
 class CategoryRepository {
-  async create(categoryData) {
-    return await Category.create(categoryData);
-  }
 
-  async findById(id) {
-    return await Category.findById(id);
-  }
+    async create(data){
+        return await Category.create(data);
+    }
 
-  async findByName(name) {
-    return await Category.findOne({
-      name: {
-        $regex: new RegExp(`^${name}$`, "i"),
-      },
-    });
-  }
+    async findById(id){
+        return await Category.findById(id);
+    }
 
-  async findBySlug(slug) {
-    return await Category.findOne({ slug });
-  }
+    async findByName(name){
 
-  async findAll(filter = {}) {
-    return await Category.find(filter).sort({
-      createdAt: -1,
-    });
-  }
+        return await Category.findOne({
 
-  async updateById(id, data) {
-    return await Category.findByIdAndUpdate(id, data, {
-      new: true,
-      runValidators: true,
-    });
-  }
+            name:{
+                $regex:new RegExp(`^${name}$`,"i")
+            }
 
-  async deleteById(id) {
-    return await Category.findByIdAndDelete(id);
-  }
+        });
+
+    }
+
+    async findBySlug(slug){
+
+        return await Category.findOne({slug});
+
+    }
+
+    async getAll(filter={},options={}){
+
+        const {
+
+            page=1,
+            limit=10,
+            sort="-createdAt"
+
+        }=options;
+
+        const skip=(page-1)*limit;
+
+        const [categories,total]=await Promise.all([
+
+            Category.find(filter)
+            .sort(sort)
+            .skip(skip)
+            .limit(limit),
+
+            Category.countDocuments(filter)
+
+        ]);
+
+        return {
+
+            categories,
+            total
+
+        };
+
+    }
+
+    async updateById(id,data){
+
+        return await Category.findByIdAndUpdate(
+
+            id,
+
+            data,
+
+            {
+
+                new:true,
+                runValidators:true
+
+            }
+
+        );
+
+    }
+
 }
 
 export default new CategoryRepository();
