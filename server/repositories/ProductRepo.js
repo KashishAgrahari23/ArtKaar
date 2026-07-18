@@ -8,11 +8,17 @@ class ProductRepository {
 
   async findById(id) {
     return await Product.findOne({
-        _id: id,
-        deletedAt: null,
+      _id: id,
+      deletedAt: null,
     })
-        .populate("category", "name")
-        .populate("brand", "name");
+      .populate("category", "name")
+      .populate("brand", "name");
+  }
+
+  async findByIdIncludingDeleted(id) {
+    return await Product.findById(id)
+      .populate("category", "name")
+      .populate("brand", "name");
   }
 
   async findBySlug(slug) {
@@ -23,25 +29,41 @@ class ProductRepository {
     return await Product.findOne({ sku });
   }
 
-  async getAll(queryParams) {
+  async getAll(queryParams = {}) {
+    const filter = {
+      deletedAt: null,
+    };
+
+    if (queryParams.search) {
+      filter.$or = [
+        {
+          productName: {
+            $regex: queryParams.search,
+            $options: "i",
+          },
+        },
+        {
+          sku: {
+            $regex: queryParams.search,
+            $options: "i",
+          },
+        },
+      ];
+    }
+
     const features = new ApiFeatures(
-      Product.find({
-        deletedAt: null,
-      })
+      Product.find(filter)
         .populate("category", "name")
         .populate("brand", "name"),
       queryParams
     )
-      .search(["productName", "sku"])
       .filter()
       .sort()
       .paginate();
 
     const products = await features.query;
 
-    const total = await Product.countDocuments({
-      deletedAt: null,
-    });
+    const total = await Product.countDocuments(filter);
 
     return {
       products,
@@ -50,14 +72,10 @@ class ProductRepository {
   }
 
   async updateById(id, data) {
-    return await Product.findByIdAndUpdate(
-      id,
-      data,
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
+    return await Product.findByIdAndUpdate(id, data, {
+      new: true,
+      runValidators: true,
+    });
   }
 }
 

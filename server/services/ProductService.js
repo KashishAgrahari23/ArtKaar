@@ -7,16 +7,12 @@ import slugify from "../utils/slugify.js";
 
 class ProductService {
   async create(data) {
-    const category =
-      await CategoryRepository.findById(
-        data.category
-      );
+    const category = await CategoryRepository.findById(
+      data.category
+    );
 
     if (!category) {
-      throw new ApiError(
-        404,
-        "Category not found."
-      );
+      throw new ApiError(404, "Category not found.");
     }
 
     const brand = await BrandRepository.findById(
@@ -24,9 +20,16 @@ class ProductService {
     );
 
     if (!brand) {
+      throw new ApiError(404, "Brand not found.");
+    }
+
+    if (
+      data.salePrice != null &&
+      data.salePrice > data.regularPrice
+    ) {
       throw new ApiError(
-        404,
-        "Brand not found."
+        400,
+        "Sale price cannot be greater than regular price."
       );
     }
 
@@ -43,9 +46,7 @@ class ProductService {
     }
 
     const skuExists =
-      await ProductRepository.findBySKU(
-        data.sku
-      );
+      await ProductRepository.findBySKU(data.sku);
 
     if (skuExists) {
       throw new ApiError(
@@ -54,11 +55,10 @@ class ProductService {
       );
     }
 
-    if (data.quantity <= 0) {
-      data.stockStatus = "out_of_stock";
-    } else {
-      data.stockStatus = "in_stock";
-    }
+    data.stockStatus =
+      data.quantity > 0
+        ? "in_stock"
+        : "out_of_stock";
 
     return await ProductRepository.create({
       ...data,
@@ -67,53 +67,16 @@ class ProductService {
   }
 
   async getAll(queryParams) {
-
-    const baseFilter = {
-        deletedAt: null,
-    };
-
-    if (queryParams.search) {
-
-        baseFilter.$or = [
-            {
-                productName: {
-                    $regex: queryParams.search,
-                    $options: "i",
-                },
-            },
-            {
-                sku: {
-                    $regex: queryParams.search,
-                    $options: "i",
-                },
-            },
-        ];
-    }
-
-    const query = Product.find(baseFilter)
-        .populate("category", "name")
-        .populate("brand", "name");
-
-    const features = new ApiFeatures(query, queryParams)
-        .filter()
-        .sort()
-        .paginate();
-
-    const products = await features.query;
-
-    const total = await Product.countDocuments(baseFilter);
-
-    return {
-        products,
-        total,
-    };
-}
+    return await ProductRepository.getAll(
+      queryParams
+    );
+  }
 
   async getById(id) {
     const product =
       await ProductRepository.findById(id);
 
-    if (!product || product.deletedAt) {
+    if (!product) {
       throw new ApiError(
         404,
         "Product not found."
@@ -127,25 +90,77 @@ class ProductService {
     const product =
       await ProductRepository.findById(id);
 
-    if (!product || product.deletedAt) {
+    if (!product) {
       throw new ApiError(
         404,
         "Product not found."
       );
     }
 
+    if (data.category) {
+      const category =
+        await CategoryRepository.findById(
+          data.category
+        );
+
+      if (!category) {
+        throw new ApiError(
+          404,
+          "Category not found."
+        );
+      }
+    }
+
+    if (data.brand) {
+      const brand =
+        await BrandRepository.findById(
+          data.brand
+        );
+
+      if (!brand) {
+        throw new ApiError(
+          404,
+          "Brand not found."
+        );
+      }
+    }
+
+    if (
+      data.regularPrice !== undefined ||
+      data.salePrice !== undefined
+    ) {
+      const regularPrice =
+        data.regularPrice ??
+        product.regularPrice;
+
+      const salePrice =
+        data.salePrice ??
+        product.salePrice;
+
+      if (
+        salePrice != null &&
+        salePrice > regularPrice
+      ) {
+        throw new ApiError(
+          400,
+          "Sale price cannot be greater than regular price."
+        );
+      }
+    }
+
     if (
       data.productName &&
-      data.productName !== product.productName
+      data.productName !==
+        product.productName
     ) {
       const slug = slugify(data.productName);
 
-      const exists =
+      const slugExists =
         await ProductRepository.findBySlug(slug);
 
       if (
-        exists &&
-        exists._id.toString() !== id
+        slugExists &&
+        slugExists._id.toString() !== id
       ) {
         throw new ApiError(
           409,
@@ -156,41 +171,6 @@ class ProductService {
       data.slug = slug;
     }
 
-    if (data.category) {
-
-    const category =
-        await CategoryRepository.findById(
-            data.category
-        );
-
-    if (!category) {
-
-        throw new ApiError(
-            404,
-            "Category not found."
-        );
-
-    }
-
-}
-
-if (data.brand) {
-
-    const brand =
-        await BrandRepository.findById(
-            data.brand
-        );
-
-    if (!brand) {
-
-        throw new ApiError(
-            404,
-            "Brand not found."
-        );
-
-    }
-
-}
     if (data.sku) {
       const sku =
         await ProductRepository.findBySKU(
@@ -242,6 +222,18 @@ if (data.brand) {
   }
 
   async restore(id) {
+    const product =
+      await ProductRepository.findByIdIncludingDeleted(
+        id
+      );
+
+    if (!product) {
+      throw new ApiError(
+        404,
+        "Product not found."
+      );
+    }
+
     return await ProductRepository.updateById(
       id,
       {
