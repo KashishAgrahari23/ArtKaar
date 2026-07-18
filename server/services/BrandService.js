@@ -1,4 +1,4 @@
-import BrandRepository from "../repositories/BrandRepository.js";
+import BrandRepository from "../repositories/BrandRepo.js";
 import ApiError from "../utils/ApiError.js";
 import slugify from "../utils/slugify.js";
 

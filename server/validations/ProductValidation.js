@@ -5,86 +5,70 @@ const imageSchema = z.object({
   publicId: z.string().min(1),
 });
 
-export const createProductSchema = z
-  .object({
-    productName: z
-      .string()
-      .trim()
-      .min(2)
-      .max(150),
+const productSchema = z.object({
+  productName: z.string().trim().min(2).max(150),
 
-    description: z
-      .string()
-      .optional()
-      .or(z.literal("")),
+  description: z.string().optional().or(z.literal("")),
 
-    category: z.string(),
+  category: z.string(),
 
-    brand: z.string(),
+  brand: z.string(),
 
-    images: z
-      .array(imageSchema)
-      .min(1, "At least one image is required"),
+  images: z
+    .array(imageSchema)
+    .min(1, "At least one image is required"),
 
-    regularPrice: z.number().positive(),
+  regularPrice: z.number().positive(),
 
-    salePrice: z.number().min(0).nullable().optional(),
+  salePrice: z.number().nullable().optional(),
 
-    sku: z.string().trim().min(1),
+  sku: z.string().trim().min(1),
 
-    quantity: z.number().int().nonnegative(),
+  quantity: z.number().int().nonnegative(),
 
-    stockStatus: z
-      .enum([
-        "in_stock",
-        "out_of_stock",
-      ])
-      .optional(),
+  stockStatus: z
+    .enum(["in_stock", "out_of_stock"])
+    .optional(),
 
-    tags: z.array(z.string()).optional(),
+  tags: z.array(z.string()).optional(),
 
-    featured: z.boolean().optional(),
+  featured: z.boolean().optional(),
 
-    status: z
-      .enum([
-        "draft",
-        "published",
-        "archived",
-      ])
-      .optional(),
-  })
+  status: z
+    .enum(["draft", "published", "archived"])
+    .optional(),
+});
+
+export const createProductSchema = productSchema.refine(
+  (data) =>
+    data.salePrice == null ||
+    data.salePrice <= data.regularPrice,
+  {
+    message:
+      "Sale price cannot be greater than regular price.",
+    path: ["salePrice"],
+  }
+);
+
+export const updateProductSchema = productSchema
+  .partial()
   .refine(
-    (data) =>
-      data.salePrice == null ||
-      data.salePrice <= data.regularPrice,
+    (data) => {
+      if (
+        data.salePrice !== undefined &&
+        data.regularPrice !== undefined
+      ) {
+        return (
+          data.salePrice == null ||
+          data.salePrice <= data.regularPrice
+        );
+      }
+
+      return true;
+    },
     {
       message:
         "Sale price cannot be greater than regular price.",
       path: ["salePrice"],
     }
   );
-
-export const updateProductSchema =
-  createProductSchema
-    .partial()
-    .refine(
-      (data) => {
-        if (
-          data.salePrice !== undefined &&
-          data.regularPrice !== undefined
-        ) {
-          return (
-            data.salePrice == null ||
-            data.salePrice <=
-              data.regularPrice
-          );
-        }
-
-        return true;
-      },
-      {
-        message:
-          "Sale price cannot be greater than regular price.",
-        path: ["salePrice"],
-      }
-    );

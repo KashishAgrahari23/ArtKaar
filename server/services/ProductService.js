@@ -1,6 +1,6 @@
-import ProductRepository from "../repositories/ProductRepository.js";
+import ProductRepository from "../repositories/ProductRepo.js";
 import CategoryRepository from "../repositories/CategoryRepo.js";
-import BrandRepository from "../repositories/BrandRepository.js";
+import BrandRepository from "../repositories/BrandRepo.js";
 
 import ApiError from "../utils/ApiError.js";
 import slugify from "../utils/slugify.js";
