@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-import * as authService from "@/services/auth.service";
+import * as authService from "@/services/authService";
 import { useAuth } from "@/context/AuthContext";
 
 export default function useLogin() {
@@ -25,10 +25,7 @@ export default function useLogin() {
 
       toast.success(res.message);
     } catch (err) {
-      toast.error(
-        err.response?.data?.message ||
-          "Login failed"
-      );
+      toast.error(err.response?.data?.message || "Login failed");
     }
   };
 

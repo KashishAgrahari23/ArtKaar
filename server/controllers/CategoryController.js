@@ -15,7 +15,7 @@ export const createCategory = asyncHandler(async (req, res) => {
 });
 
 export const getCategories = asyncHandler(async (req, res) => {
-  const categories = await CategoryService.getAll();
+  const categories = await CategoryService.getAll(req.query);
 
   return res.status(200).json(
     new ApiResponse(

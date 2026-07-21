@@ -25,7 +25,7 @@ class CategoryService {
     });
   }
 
-  async getAll(query){
+  async getAll(query={}){
 
     const {
 
