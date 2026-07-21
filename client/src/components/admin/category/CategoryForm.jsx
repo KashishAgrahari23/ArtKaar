@@ -8,6 +8,8 @@ import {
   Input,
   Switch,
   Space,
+  Select,
+  InputNumber,
 } from "antd";
 
 import {
@@ -26,6 +28,7 @@ const { TextArea } = Input;
 
 export default function CategoryForm({
   category,
+  categories = [],
   loading = false,
   onSubmit,
   onCancel,
@@ -46,6 +49,8 @@ export default function CategoryForm({
     defaultValues: {
       name: "",
       description: "",
+      parentCategory: null,
+      sortOrder: 0,
       isActive: true,
     },
   });
@@ -55,12 +60,17 @@ export default function CategoryForm({
       reset({
         name: category.name,
         description: category.description || "",
+        parentCategory:
+          category.parentCategory?._id ?? null,
+        sortOrder: category.sortOrder ?? 0,
         isActive: category.isActive,
       });
     } else {
       reset({
         name: "",
         description: "",
+        parentCategory: null,
+        sortOrder: 0,
         isActive: true,
       });
     }
@@ -71,6 +81,7 @@ export default function CategoryForm({
       layout="vertical"
       onFinish={handleSubmit(onSubmit)}
     >
+      {/* Category Name */}
       <Form.Item
         label="Category Name"
         validateStatus={errors.name ? "error" : ""}
@@ -82,15 +93,18 @@ export default function CategoryForm({
           render={({ field }) => (
             <Input
               {...field}
-              placeholder="Category Name"
+              placeholder="Enter category name"
             />
           )}
         />
       </Form.Item>
 
+      {/* Description */}
       <Form.Item
         label="Description"
-        validateStatus={errors.description ? "error" : ""}
+        validateStatus={
+          errors.description ? "error" : ""
+        }
         help={errors.description?.message}
       >
         <Controller
@@ -100,12 +114,67 @@ export default function CategoryForm({
             <TextArea
               {...field}
               rows={4}
-              placeholder="Description"
+              placeholder="Enter category description"
             />
           )}
         />
       </Form.Item>
 
+      {/* Parent Category */}
+      <Form.Item
+        label="Parent Category"
+        validateStatus={
+          errors.parentCategory ? "error" : ""
+        }
+        help={errors.parentCategory?.message}
+      >
+        <Controller
+          name="parentCategory"
+          control={control}
+          render={({ field }) => (
+            <Select
+              value={field.value}
+              allowClear
+              placeholder="Root Category"
+              options={categories
+                .filter(
+                  (item) =>
+                    item._id !== category?._id
+                )
+                .map((item) => ({
+                  label: item.name,
+                  value: item._id,
+                }))}
+              onChange={(value) =>
+                field.onChange(value ?? null)
+              }
+            />
+          )}
+        />
+      </Form.Item>
+
+      {/* Sort Order */}
+      <Form.Item
+        label="Sort Order"
+        validateStatus={
+          errors.sortOrder ? "error" : ""
+        }
+        help={errors.sortOrder?.message}
+      >
+        <Controller
+          name="sortOrder"
+          control={control}
+          render={({ field }) => (
+            <InputNumber
+              {...field}
+              min={0}
+              className="w-full"
+            />
+          )}
+        />
+      </Form.Item>
+
+      {/* Status (Edit Only) */}
       {isEdit && (
         <Form.Item label="Status">
           <Controller
@@ -134,7 +203,9 @@ export default function CategoryForm({
           htmlType="submit"
           loading={loading}
         >
-          {isEdit ? "Update Category" : "Create Category"}
+          {isEdit
+            ? "Update Category"
+            : "Create Category"}
         </Button>
       </Space>
     </Form>

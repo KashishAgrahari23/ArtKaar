@@ -4,7 +4,7 @@ const categorySchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, "Category name is required"],
+      required: [true, "Category name is required."],
       trim: true,
       unique: true,
       maxlength: 100,
@@ -23,6 +23,7 @@ const categorySchema = new mongoose.Schema(
       type: String,
       trim: true,
       default: "",
+      maxlength: 500,
     },
 
     image: {
@@ -37,21 +38,47 @@ const categorySchema = new mongoose.Schema(
       },
     },
 
+    // NEW
+    parentCategory: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
+      default: null,
+      index: true,
+    },
+
+    // NEW
+    level: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    // NEW
+    sortOrder: {
+      type: Number,
+      default: 0,
+    },
+
     isActive: {
       type: Boolean,
       default: true,
-      index:true
+      index: true,
     },
-    deletedAt:{
-    type:Date,
-    default:null
-},
+
+    deletedAt: {
+      type: Date,
+      default: null,
+      index: true,
+    },
   },
   {
     timestamps: true,
   }
 );
 
-const Category = mongoose.model("Category", categorySchema);
+const Category = mongoose.model(
+  "Category",
+  categorySchema
+);
 
 export default Category;

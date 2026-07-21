@@ -1,4 +1,4 @@
-import { Button, Space, Tag } from "antd";
+import { Button, Space, Tag, Tooltip } from "antd";
 import {
   EditOutlined,
   DeleteOutlined,
@@ -29,6 +29,15 @@ export default function categoryColumns({
     },
 
     {
+      title: "Parent Category",
+      key: "parentCategory",
+      render: (_, record) =>
+        record.parentCategory?.name || (
+          <Tag color="blue">Root</Tag>
+        ),
+    },
+
+    {
       title: "Slug",
       dataIndex: "slug",
       key: "slug",
@@ -38,14 +47,32 @@ export default function categoryColumns({
       title: "Description",
       dataIndex: "description",
       key: "description",
-      ellipsis: true,
+      ellipsis: {
+        showTitle: false,
+      },
       render: (text) =>
-        text || "-",
+        text ? (
+          <Tooltip title={text}>
+            {text}
+          </Tooltip>
+        ) : (
+          "-"
+        ),
+    },
+
+    {
+      title: "Sort Order",
+      dataIndex: "sortOrder",
+      key: "sortOrder",
+      align: "center",
+      width: 100,
     },
 
     {
       title: "Status",
       key: "status",
+      width: 120,
+      align: "center",
       render: (_, record) => (
         <Tag
           color={
@@ -66,31 +93,37 @@ export default function categoryColumns({
       dataIndex: "createdAt",
       key: "createdAt",
       render: formatDate,
+      width: 120,
     },
 
     {
       title: "Actions",
       key: "actions",
-      width: 180,
+      width: 150,
+      align: "center",
       render: (_, record) => (
         <Space>
-          <Button
-            type="primary"
-            ghost
-            icon={<EditOutlined />}
-            onClick={() =>
-              onEdit(record)
-            }
-          />
-
-          {record.deletedAt ? (
+          <Tooltip title="Edit">
             <Button
               type="primary"
-              icon={<RollbackOutlined />}
+              ghost
+              icon={<EditOutlined />}
               onClick={() =>
-                onRestore(record._id)
+                onEdit(record)
               }
             />
+          </Tooltip>
+
+          {record.deletedAt ? (
+            <Tooltip title="Restore">
+              <Button
+                type="primary"
+                icon={<RollbackOutlined />}
+                onClick={() =>
+                  onRestore(record._id)
+                }
+              />
+            </Tooltip>
           ) : (
             <DeleteConfirm
               title="Delete Category?"
@@ -99,10 +132,12 @@ export default function categoryColumns({
                 onDelete(record._id)
               }
             >
-              <Button
-                danger
-                icon={<DeleteOutlined />}
-              />
+              <Tooltip title="Delete">
+                <Button
+                  danger
+                  icon={<DeleteOutlined />}
+                />
+              </Tooltip>
             </DeleteConfirm>
           )}
         </Space>

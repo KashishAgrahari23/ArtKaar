@@ -22,8 +22,25 @@ export default function useCategories(params = {}) {
   });
 
   return {
-    categories: query.data?.data?.categories ?? [],
-    pagination: query.data?.data?.pagination ?? {},
+    categories:
+      query.data?.data?.categories ?? [],
+
+    pagination: {
+      page:
+        query.data?.data?.pagination?.page ?? 1,
+
+      limit:
+        query.data?.data?.pagination?.limit ??
+        10,
+
+      total:
+        query.data?.data?.pagination?.total ??
+        0,
+
+      totalPages:
+        query.data?.data?.pagination
+          ?.totalPages ?? 1,
+    },
 
     isLoading: query.isLoading,
     isFetching: query.isFetching,

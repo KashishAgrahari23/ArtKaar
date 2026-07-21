@@ -9,6 +9,7 @@ export default function CategoryDrawer({
   open,
   onClose,
   category,
+  categories = [],
   createMutation,
   updateMutation,
 }) {
@@ -26,11 +27,15 @@ export default function CategoryDrawer({
           data: values,
         });
 
-        toast.success("Category updated successfully.");
+        toast.success(
+          "Category updated successfully."
+        );
       } else {
         await createMutation.mutateAsync(values);
 
-        toast.success("Category created successfully.");
+        toast.success(
+          "Category created successfully."
+        );
       }
 
       onClose();
@@ -44,12 +49,17 @@ export default function CategoryDrawer({
 
   return (
     <DrawerWrapper
-      title={isEdit ? "Edit Category" : "Create Category"}
+      title={
+        isEdit
+          ? "Edit Category"
+          : "Create Category"
+      }
       open={open}
       onClose={onClose}
     >
       <CategoryForm
         category={category}
+        categories={categories}
         loading={loading}
         onSubmit={handleSubmit}
         onCancel={onClose}

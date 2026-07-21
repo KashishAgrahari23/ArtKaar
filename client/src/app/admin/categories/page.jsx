@@ -22,7 +22,8 @@ export default function CategoriesPage() {
 
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedCategory, setSelectedCategory] =
+    useState(null);
 
   const {
     categories,
@@ -95,6 +96,7 @@ export default function CategoriesPage() {
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         category={selectedCategory}
+        categories={categories}
         createMutation={create}
         updateMutation={update}
       />
