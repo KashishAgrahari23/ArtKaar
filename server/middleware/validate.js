@@ -1,3 +1,4 @@
+import { ZodError } from "zod";
 import ApiError from "../utils/ApiError.js";
 
 const validate = (schema) => {
@@ -7,10 +8,16 @@ const validate = (schema) => {
 
       next();
     } catch (error) {
-      const message =
-        error.issues?.[0]?.message || "Validation Failed";
+      if (error instanceof ZodError) {
+        return next(
+          new ApiError(
+            400,
+            error.issues[0]?.message || "Validation Failed"
+          )
+        );
+      }
 
-      next(new ApiError(400, message));
+      next(error);
     }
   };
 };
